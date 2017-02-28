@@ -1,0 +1,4 @@
+bd_contact.list:
+  title: Employees
+  route_name: employee.list
+  base_route: system.admin_content

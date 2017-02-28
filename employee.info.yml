@@ -1,0 +1,5 @@
+name: Employees
+description: 'Custom Module for CRUD operation'
+type: module
+core: 8.x
+package: Custom

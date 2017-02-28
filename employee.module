@@ -1,0 +1,21 @@
+<?php
+function employee_menu(){
+	return array(
+	    'admin/content/employee' => array(
+	      'title' => 'List Employees',
+	      'route_name' => 'employee.list',
+	    ),
+	    'admin/content/employee/add' => array(
+	      'title' => 'Add an employee',
+	      'route_name' => 'employee.add',
+	    ),
+	    'admin/content/employee/edit/{id}' => array(
+	      'title' => 'Edit Employee',
+	      'route_name' => 'employee.edit',
+	    ),
+	    'admin/content/employee/delete/%' => array(
+	      'title' => 'Delete an employee',
+	      'route_name' => 'employee.delete',
+	    ),
+    );
+}

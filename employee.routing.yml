@@ -1,0 +1,45 @@
+employee.list:
+  path: '/admin/content/employee'
+  defaults:
+    _controller: '\Drupal\employee\controller\EmployeeController::listEmployees'
+  requirements:
+    _permission: 'manage employees'
+
+employee.add:
+  path: '/admin/content/employee/add'
+  defaults:
+    _form: '\Drupal\employee\EmployeeForm'
+    _title: 'Create Employee'
+  requirements:
+    _permission: 'add employee'
+
+employee.view:
+  path: '/admin/content/employee/{employee}'
+  defaults:
+    _controller: '\Drupal\employee\controller\EmployeeController::viewEmployee'
+  requirements:
+    _permission: 'view employee'
+  options:
+    parameters:
+      employee:
+        type: employee
+
+employee.edit:
+  path: 'admin/content/employee/{employee}/edit'
+  defaults:
+    _form: '\Drupal\employee\EmployeeForm'
+    _title: 'Edit Employee'
+  requirements:
+    _permission: 'edit employee'
+  options:
+    parameters:
+      employee:
+        type: employee
+
+employee.delete:
+  path: '/admin/content/employee/{id}/delete'
+  defaults:
+    _form: 'Drupal\employee\DeleteForm'
+    _title: 'Delete Employee'
+  requirements:
+    _permission: 'delete employee'

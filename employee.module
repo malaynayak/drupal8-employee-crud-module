@@ -9,11 +9,15 @@ function employee_menu(){
 	      'title' => 'Add an employee',
 	      'route_name' => 'employee.add',
 	    ),
-	    'admin/content/employee/edit/{id}' => array(
+	    'admin/content/employee/{employee}/edit' => array(
 	      'title' => 'Edit Employee',
 	      'route_name' => 'employee.edit',
 	    ),
-	    'admin/content/employee/delete/%' => array(
+	    'admin/content/employee/{employee}' => array(
+	      'title' => 'View Employee',
+	      'route_name' => 'employee.view',
+	    ),
+	    'admin/content/employee/{id}/delete' => array(
 	      'title' => 'Delete an employee',
 	      'route_name' => 'employee.delete',
 	    ),

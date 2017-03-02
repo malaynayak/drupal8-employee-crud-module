@@ -43,3 +43,11 @@ employee.delete:
     _title: 'Delete Employee'
   requirements:
     _permission: 'delete employee'
+
+employee.settings:
+  path: '/admin/config/employee'
+  defaults:
+    _form: '\Drupal\employee\EmployeeSettingsForm'
+    _title: 'Employees page settings'
+  requirements:
+    _permission: 'administer site configuration'

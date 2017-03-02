@@ -1,5 +1,5 @@
 bd_contact.add:
-  title: Add employee
+  title: Add Employee
   route_name: employee.add
   appears_on:
     - employee.list

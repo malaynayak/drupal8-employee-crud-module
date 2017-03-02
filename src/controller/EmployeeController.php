@@ -8,20 +8,34 @@ use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class EmployeeController {
-
+ 
+ /**
+  * Lists all the employess
+  */
   public function listEmployees() {
     $content = array();
     
     // Table header
     $header = array(
-      'id' => t('Id'),
-      'name' => t('Name'),
-      'email' => t('Email'),
+      array('data' => t('Id'), 'field' => 'e.id'),
+      array('data' => t('Name'), 'field' => 'e.name'),
+      array('data' => t('Email'), 'field' => 'e.email'),
       'view' => '',
     );
-    
+
+    $db = Drupal::database();
+    $query = $db->select('employee','e')
+      ->fields('e')
+      ->extend('Drupal\Core\Database\Query\TableSortExtender')
+      ->extend('Drupal\Core\Database\Query\PagerSelectExtender');
+    $query->orderByHeader($header);
+
+    $config = Drupal::config('employee.settings');
+    $limit = ($config->get('page_limit'))?$config->get('page_limit'):10;
+    $query->limit($limit);
+    $results = $query->execute();
     $rows = array();
-    foreach(EmployeeStorage::getAll() as $row) {
+    foreach($results as $row) {
       // Row with attributes on the row and some of its cells.
       $rows[] = array(
         'data' => array($row->id, $row->name, $row->email, 
@@ -38,10 +52,15 @@ class EmployeeController {
         'id' => 'bd-contact-table',
       ),
     );
-    
+    $content['pager'] = array(
+      '#type' => 'pager',
+    );
     return $content;
   }
 
+  /**
+   * To view an employee details
+   */
   public function viewEmployee($employee){
     if($employee == 'invalid'){
       drupal_set_message(t('Invalid employee record'), 'error');
@@ -93,13 +112,6 @@ class EmployeeController {
       '#title' => 'Delete',
       '#attributes' => array('class' => ['button']),
       '#url' => Url::fromRoute('employee.delete',array('id' => $employee->id)),
-    );
-
-    $content['cancel'] = array(
-      '#type' => 'link',
-      '#title' => 'Back',
-      '#attributes' => array('class' => ['button']),
-      '#url' => Url::fromRoute('employee.list'),
     );
 
     return $content;

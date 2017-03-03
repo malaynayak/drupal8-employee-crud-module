@@ -66,12 +66,7 @@ class EmployeeController {
       drupal_set_message(t('Invalid employee record'), 'error');
       return new RedirectResponse(Drupal::url('employee.list'));
     }
-    $departments = array(
-        'dev' => 'Development',
-        'hr' => 'Human Resource',
-        'sale' => 'Sales',
-        'marketing' => 'Marketing'
-    );
+    
     $rows = array(
         array(
           array('data' => 'Id', 'header' => TRUE),
@@ -87,7 +82,7 @@ class EmployeeController {
         ),
         array(
           array('data' => 'Department', 'header' => TRUE),
-          $departments[$employee->department],
+          $employee->department,
         ),
         array(
           array('data' => 'Address', 'header' => TRUE),

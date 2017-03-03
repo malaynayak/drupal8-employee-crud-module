@@ -1,4 +1,7 @@
 <?php
+/**
+ * implements hook_menu() 
+ */
 function employee_menu(){
 	return array(
 	    'admin/content/employee' => array(
@@ -22,4 +25,115 @@ function employee_menu(){
 	      'route_name' => 'employee.delete',
 	    ),
     );
+}
+
+/**
+ * implements hook_views_data() 
+ */
+function employee_views_data(){
+	$data = array();
+	$data['employee']['table']['group']  = t('Employee');
+	$data['employee']['table']['provider'] = 'employee';
+	$data['employee']['table']['base'] = array(
+    	'field' => 'id', // This is the identifier field for the view.
+    	'title' => t('Employee'),
+    	'help' => t('Table containing employee records'),
+    	'weight' => -10,
+  	);
+	
+	$data['employee']['id'] = array(
+	    'title' => t('Employee Id'),
+	    'help' => t('Employee Id'),
+	    'field' => array(
+	      // ID of field handler plugin to use.
+	      'id' => 'numeric',
+	    ),
+	    'sort' => array(
+	      // ID of sort handler plugin to use.
+	      'id' => 'standard',
+	    ),
+	    'filter' => array(
+	      // ID of filter handler plugin to use.
+	      'id' => 'numeric',
+	    ),
+	    'argument' => array(
+	      // ID of argument handler plugin to use.
+	      'id' => 'numeric',
+	    ),
+	);
+  	$data['employee']['name'] = array(
+	    'title' => t('Employee Name'),
+	    'field' => array(
+	      'id' => 'standard',
+	    ),
+	    'sort' => array(
+	      'id' => 'standard',
+	    ),
+	    'filter' => array(
+	      'id' => 'string',
+	    ),
+	    'argument' => array(
+	      'id' => 'string',
+	    ),
+	);
+	$data['employee']['email'] = array(
+	    'title' => t('Employee Email'),
+	    'field' => array(
+	      'id' => 'standard',
+	    ),
+	    'sort' => array(
+	      'id' => 'standard',
+	    ),
+	    'filter' => array(
+	      'id' => 'string',
+	    ),
+	    'argument' => array(
+	      'id' => 'string',
+	    ),
+	);
+	$data['employee']['department'] = array(
+	    'title' => t('Department'),
+	    'field' => array(
+	      'id' => 'standard',
+	    ),
+	    'sort' => array(
+	      'id' => 'standard',
+	    ),
+	    'filter' => array(
+	      'id' => 'in_operator',
+	      'options callback' => '_employee_get_department_lists',
+	    ),
+	    'argument' => array(
+	      'id' => 'string',
+	    )
+	);
+	$data['employee']['address'] = array(
+	    'title' => t('Address'),
+	    'field' => array(
+	      'id' => 'standard',
+	    ),
+	    'sort' => array(
+	      'id' => 'standard',
+	    ),
+	    'filter' => array(
+	      'id' => 'string',
+	    ),
+	    'argument' => array(
+	      'id' => 'string',
+	    ),
+	);
+
+	return $data;
+}
+
+/**
+ * Provides options for in_operator views filter 
+ */
+function _employee_get_department_lists() {
+  return array(
+    'Development' => 'Development',
+    'HR' => 'HR',
+    'Sales' => 'Sales',
+    'Marketing' => 'Marketing'
+  );
 }

@@ -48,10 +48,10 @@ class EmployeeForm implements FormInterface {
       '#title' => t('Department'),
       '#options' => array(
         '' => 'Select Department',
-        'dev' => 'Development',
-        'hr' => 'Human Resource',
-        'sale' => 'Sales',
-        'marketing' => 'Marketing'
+        'Development' => 'Development',
+        'HR' => 'HR',
+        'Sales' => 'Sales',
+        'Marketing' => 'Marketing'
       ),
       '#required' => true,
       '#default_value' => ($employee)?$employee->department:''

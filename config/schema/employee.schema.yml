@@ -1,0 +1,7 @@
+employee.settings:
+  type: config_object
+  label: 'Employee Page Settings'
+  mapping:
+    page_limit:
+      type: integer
+      label: 'Per page item limit'

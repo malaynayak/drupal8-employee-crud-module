@@ -6,6 +6,9 @@ use Drupal\employee\EmployeeStorage;
 use Drupal;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Component\Serialization\Json;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\OpenModalDialogCommand;
 
 class EmployeeController {
  
@@ -36,11 +39,21 @@ class EmployeeController {
     $results = $query->execute();
     $rows = array();
     foreach($results as $row) {
-      // Row with attributes on the row and some of its cells.
+      $ajax_link_attributes = array(
+        'attributes' => array(
+          'class' => 'use-ajax',
+        )
+      );
+      $ajax_url = Url::fromRoute('employee.view', array('employee'=>$row->id, 'js' => 'ajax'), 
+        $ajax_link_attributes);
       $rows[] = array(
-        'data' => array($row->id, $row->name, $row->email, 
-          \Drupal::l('View', Url::fromRoute('employee.view',
-            array('employee'=>$row->id))))
+        'data' => array(
+          $row->id, 
+          \Drupal::l($row->name, $ajax_url), 
+          $row->email, 
+          \Drupal::l('View', Url::fromRoute('employee.view', 
+            array('employee'=>$row->id, 'js' => 'nojs')))
+        )
       );
     }
 
@@ -55,13 +68,15 @@ class EmployeeController {
     $content['pager'] = array(
       '#type' => 'pager',
     );
+
+    $content['#attached'] = array('library' => ['core/drupal.dialog.ajax']);
     return $content;
   }
 
   /**
    * To view an employee details
    */
-  public function viewEmployee($employee){
+  public function viewEmployee($employee, $js='nojs'){
     if($employee == 'invalid'){
       drupal_set_message(t('Invalid employee record'), 'error');
       return new RedirectResponse(Drupal::url('employee.list'));
@@ -95,20 +110,31 @@ class EmployeeController {
         '#attributes' => array('class' => array('employee-detail'))
     );
 
-    $content['edit'] = array(
-      '#type' => 'link',
-      '#title' => 'Edit',
-      '#attributes' => array('class' => ['button button--primary']),
-      '#url' => Url::fromRoute('employee.edit',array('employee' => $employee->id))
-    );
+    if ($js == 'ajax') {
+      $modal_title = t('Employee #@id',array('@id' => $employee->id));
+      $options = [
+        'dialogClass' => 'popup-dialog-class',
+        'width' => '70%',
+        'height' => '80%'
+      ];
+      $response = new AjaxResponse();
+      $response->addCommand(new OpenModalDialogCommand($modal_title, $content, $options));
+      return $response;
+    } else {
+      $content['edit'] = array(
+        '#type' => 'link',
+        '#title' => 'Edit',
+        '#attributes' => array('class' => ['button button--primary']),
+        '#url' => Url::fromRoute('employee.edit',array('employee' => $employee->id))
+      );
 
-    $content['delete'] = array(
-      '#type' => 'link',
-      '#title' => 'Delete',
-      '#attributes' => array('class' => ['button']),
-      '#url' => Url::fromRoute('employee.delete',array('id' => $employee->id)),
-    );
-
-    return $content;
+      $content['delete'] = array(
+        '#type' => 'link',
+        '#title' => 'Delete',
+        '#attributes' => array('class' => ['button']),
+        '#url' => Url::fromRoute('employee.delete',array('id' => $employee->id)),
+      );
+      return $content;
+    }    
   }
 }

@@ -1,4 +1,4 @@
-bd_contact.add:
+employee.add:
   title: Add Employee
   route_name: employee.add
   appears_on:

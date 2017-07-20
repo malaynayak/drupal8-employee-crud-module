@@ -14,11 +14,12 @@ employee.add:
     _permission: 'add employee'
 
 employee.view:
-  path: '/admin/content/employee/{employee}'
+  path: '/admin/content/employee/{employee}/{js}'
   defaults:
     _controller: '\Drupal\employee\controller\EmployeeController::viewEmployee'
   requirements:
     _permission: 'view employee'
+    js: 'nojs|ajax'
   options:
     parameters:
       employee:

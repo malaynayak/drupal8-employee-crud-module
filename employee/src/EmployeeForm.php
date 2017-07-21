@@ -86,6 +86,16 @@ class EmployeeForm implements FormInterface {
         FILTER_VALIDATE_EMAIL) === false)) {
         $form_state->setErrorByName('email', t('Invalid email'));
       }
+      $id = $form_state->getValue('eid');
+      if(!empty($id)){
+        if (!EmployeeStorage::checkUniqueEmail($email,$id)) {
+          $form_state->setErrorByName('email', t('This email has already been taken!'));
+        }
+      } else {
+        if (!EmployeeStorage::checkUniqueEmail($email)) {
+          $form_state->setErrorByName('email', t('The email has already been taken!'));
+        }
+      }
   }
 
   function submitForm(array &$form, FormStateInterface $form_state) {

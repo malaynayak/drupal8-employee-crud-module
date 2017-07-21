@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\OpenModalDialogCommand;
+use Drupal\Core\Form\FormBuilder;
 
 class EmployeeController {
  
@@ -24,6 +25,7 @@ class EmployeeController {
       array('data' => t('Name'), 'field' => 'e.name'),
       array('data' => t('Email'), 'field' => 'e.email'),
       'view' => '',
+      'edit' => '',
     );
 
     $db = Drupal::database();
@@ -42,17 +44,27 @@ class EmployeeController {
       $ajax_link_attributes = array(
         'attributes' => array(
           'class' => 'use-ajax',
+          'data-dialog-type' => 'modal',
+          'data-dialog-options' => ['width' => 700, 'height' => 400]
         )
       );
       $ajax_url = Url::fromRoute('employee.view', array('employee'=>$row->id, 'js' => 'ajax'), 
         $ajax_link_attributes);
+
+      $view_link = \Drupal::l('View', Url::fromRoute('employee.view', 
+            array('employee'=>$row->id, 'js' => 'nojs')));
+      
+      $quick_edit_url = Url::fromRoute('employee.quickedit', array('employee'=>$row->id), 
+        $ajax_link_attributes);
+      $quick_edit_link = \Drupal::l('Quick Edit', $quick_edit_url);
+
       $rows[] = array(
         'data' => array(
           $row->id, 
           \Drupal::l($row->name, $ajax_url), 
           $row->email, 
-          \Drupal::l('View', Url::fromRoute('employee.view', 
-            array('employee'=>$row->id, 'js' => 'nojs')))
+          $view_link,
+          $quick_edit_link
         )
       );
     }
@@ -136,5 +148,22 @@ class EmployeeController {
       );
       return $content;
     }    
+  }
+
+  /**
+   * Callback for opening the employee quick edit form in modal.
+   */
+  public function openQuickEditModalForm($employee = NULL) {
+    if($employee == 'invalid'){
+      drupal_set_message(t('Invalid employee record'), 'error');
+      return new RedirectResponse(Drupal::url('employee.list'));
+    }
+    $response = new AjaxResponse();
+    // Get the modal form using the form builder.
+    $modal_form = \Drupal::formBuilder()->getForm('Drupal\employee\EmployeeQuickEditForm', $employee);
+
+    // Add an AJAX command to open a modal dialog with the form as the content.
+    $response->addCommand(new OpenModalDialogCommand(t('Quick Edit Employee #@id',array('@id' => $employee->id)), $modal_form, ['width' => '800']));
+    return $response;
   }
 }

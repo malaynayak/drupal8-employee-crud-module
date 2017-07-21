@@ -43,12 +43,32 @@ class EmployeeStorage {
    * @param integer $id is the employee ID
    */
   static function load($id) {
-    $result = db_select('employee', 'b')
-      ->fields('b')
+    $result = db_select('employee', 'e')
+      ->fields('e')
       ->condition('id', $id,'=')
       ->execute()
       ->fetchObject();
     return $result;
+  }
+
+  /**
+   * check for duplicate email
+   * @param String $email is the email id
+   * @param integer $id is the employee id
+   */
+  static function checkUniqueEmail($email, $id = NULL) {
+    $query = db_select('employee', 'e')
+      ->fields('e',['id']);
+    if($id){
+      $query->condition('id', $id,'!=');
+    }
+    $query->condition('email', $email,'=');
+    $result = $query->execute();
+    if(empty($result->fetchObject())){
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**

@@ -37,6 +37,18 @@ employee.edit:
       employee:
         type: employee
 
+employee.quickedit:
+  path: 'admin/content/employee/{employee}/quickedit'
+  defaults:
+    _controller: '\Drupal\employee\controller\EmployeeController::openQuickEditModalForm'
+    _title: 'Quick Edit Employee'
+  requirements:
+    _permission: 'edit employee'
+  options:
+    parameters:
+      employee:
+        type: employee
+
 employee.delete:
   path: '/admin/content/employee/{id}/delete'
   defaults:

@@ -10,9 +10,35 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\OpenModalDialogCommand;
 use Drupal\Core\Form\FormBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Controller\ControllerBase;
 
-class EmployeeController {
- 
+class EmployeeController extends ControllerBase{
+  /*
+   * The Form builder 
+   * @var \Drupal\Core\Form\FormBuilder
+   */
+  protected $form_builder;
+
+  /**
+   * Constructs the EmployeeController.
+   *
+   * @param \Drupal\Core\Form\FormBuilder $form_builder
+   *   The Form builder.
+   */
+  public function __construct(FormBuilder $form_builder){
+      $this->form_builder = $form_builder;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container){
+      return new static(
+        $container->get('form_builder')
+      );
+  }
+
  /**
   * Lists all the employess
   */
@@ -159,8 +185,10 @@ class EmployeeController {
       return new RedirectResponse(Drupal::url('employee.list'));
     }
     $response = new AjaxResponse();
-    // Get the modal form using the form builder.
-    $modal_form = \Drupal::formBuilder()->getForm('Drupal\employee\EmployeeQuickEditForm', $employee);
+    // Get the form using the form builder global 
+    //$modal_form = \Drupal::formBuilder()->getForm('Drupal\employee\EmployeeQuickEditForm', $employee);
+
+    $modal_form = $this->form_builder->getForm('Drupal\employee\EmployeeQuickEditForm', $employee);
 
     // Add an AJAX command to open a modal dialog with the form as the content.
     $response->addCommand(new OpenModalDialogCommand(t('Quick Edit Employee #@id',array('@id' => $employee->id)), $modal_form, ['width' => '800']));

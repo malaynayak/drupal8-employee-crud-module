@@ -5,7 +5,6 @@ namespace Drupal\employee\controller;
 use Drupal\employee\EmployeeStorage;
 use Drupal;
 use Drupal\Core\Url;
-use Drupal\Component\Utility\Html;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Ajax\AjaxResponse;
@@ -23,7 +22,7 @@ class EmployeeController extends ControllerBase{
   protected $form_builder;
 
   /*
-   * Databse Connection 
+   * Databse Connection
    * @var \Drupal\Core\Database\Connection
    */
   protected $db;

@@ -26,6 +26,16 @@ function employee_schema() {
         'type' => 'text',
         'not null' => TRUE,
       ),
+      'country'=>array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'state'=>array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
     ),
     'primary key' => array('id'),
   );

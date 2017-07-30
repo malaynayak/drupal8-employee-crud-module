@@ -1,5 +1,6 @@
 employee.list:
   path: '/admin/content/employee'
+  _title: 'Employee Dashboard'
   defaults:
     _controller: '\Drupal\employee\controller\EmployeeController::listEmployees'
   requirements:
@@ -8,7 +9,7 @@ employee.list:
 employee.add:
   path: '/admin/content/employee/add'
   defaults:
-    _form: '\Drupal\employee\EmployeeForm'
+    _form: '\Drupal\employee\forms\EmployeeForm'
     _title: 'Create Employee'
   requirements:
     _permission: 'add employee'
@@ -17,6 +18,7 @@ employee.view:
   path: '/admin/content/employee/{employee}/{js}'
   defaults:
     _controller: '\Drupal\employee\controller\EmployeeController::viewEmployee'
+    _title: 'View Employee'
   requirements:
     _permission: 'view employee'
     js: 'nojs|ajax'
@@ -28,7 +30,7 @@ employee.view:
 employee.edit:
   path: 'admin/content/employee/{employee}/edit'
   defaults:
-    _form: '\Drupal\employee\EmployeeForm'
+    _form: '\Drupal\employee\forms\EmployeeForm'
     _title: 'Edit Employee'
   requirements:
     _permission: 'edit employee'
@@ -49,10 +51,22 @@ employee.quickedit:
       employee:
         type: employee
 
+employee.sendmail:
+  path: 'admin/content/employee/mail/{employee}'
+  defaults:
+    _controller: '\Drupal\employee\controller\EmployeeController::openEmailModalForm'
+    _title: 'Send Mail'
+  requirements:
+    _permission: 'edit employee'
+  options:
+    parameters:
+      employee:
+        type: employee
+
 employee.delete:
   path: '/admin/content/employee/{id}/delete'
   defaults:
-    _form: 'Drupal\employee\DeleteForm'
+    _form: 'Drupal\employee\forms\DeleteForm'
     _title: 'Delete Employee'
   requirements:
     _permission: 'delete employee'
@@ -60,7 +74,7 @@ employee.delete:
 employee.settings:
   path: '/admin/config/employee'
   defaults:
-    _form: '\Drupal\employee\EmployeeSettingsForm'
+    _form: '\Drupal\employee\forms\EmployeeSettingsForm'
     _title: 'Employees page settings'
   requirements:
     _permission: 'administer site configuration'

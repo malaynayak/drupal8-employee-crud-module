@@ -1,6 +1,6 @@
 <?php
 /**
- * implements hook_menu() 
+ * implements hook_menu()
  */
 function employee_menu(){
 	return array(
@@ -28,19 +28,32 @@ function employee_menu(){
 }
 
 /**
- * implements hook_views_data() 
+ * implements hook_mail()
+ */
+function employee_mail($key, &$message, $params) {
+ switch ($key) {
+   case 'send_employee_mail':
+     $message['from'] = \Drupal::config('system.site')->get('mail');
+     $message['subject'] = $params['subject'];
+     $message['body'][] = $params['message'];
+     break;
+ }
+}
+
+/**
+ * implements hook_views_data()
  */
 function employee_views_data(){
 	$data = array();
 	$data['employee']['table']['group']  = t('Employee');
 	$data['employee']['table']['provider'] = 'employee';
 	$data['employee']['table']['base'] = array(
-    	'field' => 'id', // This is the identifier field for the view.
-    	'title' => t('Employee'),
-    	'help' => t('Table containing employee records'),
-    	'weight' => -10,
-  	);
-	
+  	'field' => 'id', // This is the identifier field for the view.
+  	'title' => t('Employee'),
+  	'help' => t('Table containing employee records'),
+  	'weight' => -10,
+	);
+
 	$data['employee']['id'] = array(
 	    'title' => t('Employee Id'),
 	    'help' => t('Employee Id'),
@@ -61,7 +74,7 @@ function employee_views_data(){
 	      'id' => 'numeric',
 	    ),
 	);
-  	$data['employee']['name'] = array(
+	$data['employee']['name'] = array(
 	    'title' => t('Employee Name'),
 	    'field' => array(
 	      'id' => 'standard',
@@ -122,12 +135,41 @@ function employee_views_data(){
 	      'id' => 'string',
 	    ),
 	);
-
+	$data['employee']['country'] = array(
+	    'title' => t('Country'),
+	    'field' => array(
+	      'id' => 'standard',
+	    ),
+	    'sort' => array(
+	      'id' => 'standard',
+	    ),
+	    'filter' => array(
+	      'id' => 'string',
+	    ),
+	    'argument' => array(
+	      'id' => 'string',
+	    ),
+	);
+	$data['employee']['state'] = array(
+	    'title' => t('State'),
+	    'field' => array(
+	      'id' => 'standard',
+	    ),
+	    'sort' => array(
+	      'id' => 'standard',
+	    ),
+	    'filter' => array(
+	      'id' => 'string',
+	    ),
+	    'argument' => array(
+	      'id' => 'string',
+	    ),
+	);
 	return $data;
 }
 
 /**
- * Provides options for in_operator views filter 
+ * Provides options for in_operator views filter
  */
 function _employee_get_department_lists() {
   return array(

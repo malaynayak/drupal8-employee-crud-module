@@ -9,8 +9,10 @@ use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Url;
 use Drupal\employee\EmployeeStorage;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\employee\events\EmployeeWelcomeEvent;
 
 class EmployeeForm implements FormInterface {
+
 
   function getFormID() {
     return 'employee_add';
@@ -29,21 +31,27 @@ class EmployeeForm implements FormInterface {
       );
     }
 
-    $form['name'] = array(
+    $form['general'] = array(
+      '#type' => 'details',
+      "#title" => "General Details",
+      '#open' => TRUE
+    );
+
+    $form['general']['name'] = array(
       '#type' => 'textfield',
       '#title' => t('Name'),
       '#required' => true,
       '#default_value' => ($employee)?$employee->name:''
     );
 
-    $form['email'] = array(
+    $form['general']['email'] = array(
       '#type' => 'email',
       '#title' => t('Email'),
       '#required' => true,
       '#default_value' => ($employee)?$employee->email:''
     );
 
-    $form['department'] = array(
+    $form['general']['department'] = array(
       '#type' => 'select',
       '#title' => t('Department'),
       '#options' => array(
@@ -57,7 +65,20 @@ class EmployeeForm implements FormInterface {
       '#default_value' => ($employee)?$employee->department:''
     );
 
-    $form['country'] = array(
+    $form['address_details'] = array(
+      '#type' => 'details',
+      "#title" => "Address Details",
+      '#open' => TRUE
+    );
+
+    $form['address_details']['address'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Address'),
+      '#required' => true,
+      '#default_value' => ($employee)?$employee->address:''
+    );
+
+    $form['address_details']['country'] = array(
       '#type' => 'select',
       '#title' => t('Country'),
       '#options' => $this->getCountries(),
@@ -70,10 +91,18 @@ class EmployeeForm implements FormInterface {
       ],
     );
 
-    $selected_country = ($employee)?$employee->country:
-      $form_state->getValue('country');
+    $changed_country = $form_state->getValue('country');
+    if($employee){
+      if(!empty($changed_country)){
+        $selected_country = $changed_country;
+      } else {
+        $selected_country = $employee->country;
+      }
+    } else {
+      $selected_country = $changed_country;
+    }
     $states = $this->getStates($selected_country);
-    $form['state'] = array(
+    $form['address_details']['state'] = array(
       '#type' => 'select',
       '#prefix' => '<div id="states">',
       '#title' => t('State'),
@@ -81,13 +110,6 @@ class EmployeeForm implements FormInterface {
       '#required' => true,
       '#suffix' => '</div>',
       '#default_value' => ($employee)?$employee->state:''
-    );
-
-    $form['address'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Address'),
-      '#required' => true,
-      '#default_value' => ($employee)?$employee->address:''
     );
 
     $form['actions'] = array('#type' => 'actions');
@@ -99,14 +121,14 @@ class EmployeeForm implements FormInterface {
     $form['actions']['cancel'] = array(
       '#type' => 'link',
       '#title' => 'Cancel',
-      '#attributes' => array('class' => ['button']),
+      '#attributes' => array('class' => ['button', 'button--primary']),
       '#url' => Url::fromRoute('employee.list'),
     );
     return $form;
   }
 
   function loadStates(array &$form, FormStateInterface $form_state) {
-    return $form['state'];
+    return $form['address_details']['state'];
   }
   function getCountries(){
    return [
@@ -172,13 +194,20 @@ class EmployeeForm implements FormInterface {
       EmployeeStorage::update($id,$fields);
       $message = 'Employee updated sucessfully';
     } else {
-      EmployeeStorage::add($fields);
+      $new_employee_id = EmployeeStorage::add($fields);
+      $this->dispatchEmployeeWelcomeMailEvent($new_employee_id);
       $message = 'Employee created sucessfully';
     }
 
     drupal_set_message(t($message));
     $form_state->setRedirect('employee.list');
     return;
+  }
+
+  private function dispatchEmployeeWelcomeMailEvent($employee_id){
+    $dispatcher = \Drupal::service('event_dispatcher');
+    $event = new EmployeeWelcomeEvent($employee_id);
+    $dispatcher->dispatch(, $event);
   }
 
 }

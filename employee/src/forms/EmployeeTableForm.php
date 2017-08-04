@@ -15,14 +15,21 @@ class EmployeeTableForm implements FormInterface {
    * @var \Drupal\Core\Database\Connection
    */
   protected $db;
+
+  /*
+   * Search String
+   */
+  private $search_key;
+
   /**
    * Constructs the EmployeeTableForm.
    *
    * @param \Drupal\Core\Form\FormBuilder $form_builder
    *   The Form builder.
    */
-  public function __construct(Connection $con){
+  public function __construct(Connection $con, $search_key){
       $this->db = $con;
+      $this->search_key = $search_key;
   }
   /**
    * {@inheritdoc}
@@ -61,9 +68,11 @@ class EmployeeTableForm implements FormInterface {
     $config = Drupal::config('employee.settings');
     $limit = ($config->get('page_limit'))?$config->get('page_limit'):10;
     $query->limit($limit);
-    if(isset($_GET['search']) && !empty($_GET['search'])){
+
+    $search_key = $this->search_key;
+    if(!empty($this->search_key)){
       $query->condition('e.name', "%" .
-        Html::escape($_GET['search']) . "%", 'LIKE');
+        Html::escape($search_key) . "%", 'LIKE');
     }
     $results = $query->execute();
     $rows = [];

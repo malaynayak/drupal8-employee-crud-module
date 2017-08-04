@@ -3,3 +3,8 @@ services:
     class: Drupal\employee\ParamConverter\EmployeeParamConverter
     tags:
       - { name: paramconverter }
+  employee.employee_welcome_event_subscriber:
+    class: Drupal\employee\EventSubscriber\EmployeeWelcomeSubscriber
+    arguments: ['@plugin.manager.mail', '@logger.factory', '@current_user']
+    tags:
+      - { name: event_subscriber }

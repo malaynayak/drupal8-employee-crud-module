@@ -13,6 +13,7 @@ use Drupal\Core\Form\FormBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class EmployeeController extends ControllerBase{
   /*
@@ -27,15 +28,23 @@ class EmployeeController extends ControllerBase{
    */
   protected $db;
 
+  /*
+   * Request
+   * @var Symfony\Component\HttpFoundation\RequestStack
+   */
+  protected $request;
+
   /**
    * Constructs the EmployeeController.
    *
    * @param \Drupal\Core\Form\FormBuilder $form_builder
    *   The Form builder.
    */
-  public function __construct(FormBuilder $form_builder, Connection $con){
-      $this->form_builder = $form_builder;
-      $this->db = $con;
+  public function __construct(FormBuilder $form_builder,
+    Connection $con, RequestStack $request){
+    $this->form_builder = $form_builder;
+    $this->db = $con;
+    $this->request = $request;
   }
   /**
    * {@inheritdoc}
@@ -43,9 +52,11 @@ class EmployeeController extends ControllerBase{
   public static function create(ContainerInterface $container){
       return new static(
         $container->get('form_builder'),
-        $container->get('database')
+        $container->get('database'),
+        $container->get('request_stack')
       );
   }
+  
  /**
   * Lists all the employess
   */
@@ -53,8 +64,9 @@ class EmployeeController extends ControllerBase{
     $content = [];
     $content['search_form'] =
       $this->form_builder->getForm('Drupal\employee\forms\EmployeeSearchForm');
+    $search_key = $this->request->getCurrentRequest()->get('search');
     $employee_table_form_instance =
-      new Drupal\employee\forms\EmployeeTableForm($this->db);
+      new Drupal\employee\forms\EmployeeTableForm($this->db, $search_key);
     $content['table'] =
       $this->form_builder->getForm($employee_table_form_instance);
     $content['pager'] = [

@@ -37,6 +37,16 @@ function employee_mail($key, &$message, $params) {
      $message['subject'] = $params['subject'];
      $message['body'][] = $params['message'];
      break;
+	 case 'send_welcome_mail':
+     $message['from'] = \Drupal::config('system.site')->get('mail');
+		 $employee = $params['employee'];
+     $message['subject'] = 'Welcome Abroad '.$employee->name;
+		 $message_body = "Dear ".$employee->name." \n";
+		 $message_body.= "Welcome to our organisation.
+		 	Your Employee Id is: ".$employee->id." \n\n";
+		 $message_body.= "Regards, \n TechAspect family";
+     $message['body'][] = $message_body;
+     break;
  }
 }
 

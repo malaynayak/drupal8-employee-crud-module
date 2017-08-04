@@ -78,9 +78,7 @@ class EmployeeMailForm implements FormInterface {
     return $form;
   }
 
-  function validateForm(array &$form, FormStateInterface $form_state) {
-
-  }
+  function validateForm(array &$form, FormStateInterface $form_state) {}
 
   function submitForm(array &$form, FormStateInterface $form_state) {}
 

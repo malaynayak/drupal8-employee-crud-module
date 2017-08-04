@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\employee; 
+namespace Drupal\employee;
 use Drupal\Core\Database\Query;
 
 class EmployeeStorage {
@@ -18,7 +18,7 @@ class EmployeeStorage {
       $query->range(0,$limit);
     }
     if($orderBy){
-     $query->orderBy($orderBy, $order); 
+     $query->orderBy($orderBy, $order);
     }
     $result = $query->execute()
       ->fetchAll();
@@ -77,7 +77,7 @@ class EmployeeStorage {
    * in key => value pair.
    */
   static function add(array $fields) {
-    db_insert('employee')->fields($fields)->execute();
+    return db_insert('employee')->fields($fields)->execute();
   }
 
   /**

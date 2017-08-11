@@ -14,6 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Drupal\file\Entity\File;
 
 class EmployeeController extends ControllerBase{
   /*
@@ -46,6 +47,7 @@ class EmployeeController extends ControllerBase{
     $this->db = $con;
     $this->request = $request;
   }
+
   /**
    * {@inheritdoc}
    */
@@ -56,7 +58,7 @@ class EmployeeController extends ControllerBase{
         $container->get('request_stack')
       );
   }
-  
+
  /**
   * Lists all the employess
   */
@@ -79,6 +81,7 @@ class EmployeeController extends ControllerBase{
    * To view an employee details
    */
   public function viewEmployee($employee, $js='nojs'){
+    global $base_url;
     if($employee == 'invalid'){
       drupal_set_message(t('Invalid employee record'), 'error');
       return new RedirectResponse(Drupal::url('employee.list'));
@@ -112,6 +115,19 @@ class EmployeeController extends ControllerBase{
           ['data' => 'Address', 'header' => TRUE],
           $employee->address,
         ],
+    ];
+    $profile_pic = File::load($employee->profile_pic);
+    if($profile_pic){
+      $profile_pic_url = file_create_url($profile_pic->getFileUri());
+    } else {
+      $module_handler = Drupal::service('module_handler');
+      $path = $module_handler->getModule('employee')->getPath();
+      $profile_pic_url = $base_url.'/'.$path.'/assets/profile_placeholder.png';
+    }
+    $content['image'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'img',
+      '#attributes' => ['src'=>$profile_pic_url, 'height'=> 400]
     ];
     $content['details'] = [
       '#type' => 'table',

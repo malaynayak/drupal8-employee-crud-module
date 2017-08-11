@@ -56,13 +56,23 @@ class EmployeeQuickEditForm implements FormInterface {
     );
 
     $form['department'] = array(
-      '#type' => 'hidden',
-      '#default_value' => $employee->department
+      '#type' => 'select',
+      '#title' => t('Department'),
+      '#options' => array(
+        '' => 'Select Department',
+        'Development' => 'Development',
+        'HR' => 'HR',
+        'Sales' => 'Sales',
+        'Marketing' => 'Marketing'
+      ),
+      '#required' => true,
+      '#default_value' => ($employee)?$employee->department:''
     );
 
-    $form['address'] = array(
-      '#type' => 'hidden',
-      '#value' => $employee->address
+    $form['general']['status'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Active?'),
+      '#default_value' => ($employee)?$employee->status:1
     );
 
     $form['actions'] = array('#type' => 'actions');
@@ -113,7 +123,7 @@ class EmployeeQuickEditForm implements FormInterface {
         'name' => SafeMarkup::checkPlain($form_state->getValue('name')),
         'email' => SafeMarkup::checkPlain($form_state->getValue('email')),
         'department' => $form_state->getValue('department'),
-        'address' => SafeMarkup::checkPlain($form_state->getValue('address'))
+        'status' => $form_state->getValue('status')
       );
 
       $id = $form_state->getValue('eid');

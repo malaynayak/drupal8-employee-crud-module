@@ -1,4 +1,5 @@
 <?php
+use Drupal\Core\Database\Database;
 
 function employee_schema() {
   $schema['employee'] = array(
@@ -36,14 +37,40 @@ function employee_schema() {
         'length' => 64,
         'not null' => TRUE,
       ),
+      'status'=>array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'size' => 'tiny',
+        'length' => 1,
+        'default' => 1,
+      ),
+      'profile_pic'=>array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'length' => 11,
+      )
     ),
     'primary key' => array('id'),
   );
-
   return $schema;
-
 }
 
 function employee_uninstall() {
   db_query("drop table employee")->execute();
+}
+
+function employee_update_8001() {
+  $schema = Database::getConnection()->schema();
+  $schema->addField('employee', 'status', [
+    'type' => 'int',
+    'not null' => TRUE,
+    'size' => 'tiny',
+    'default' => 1,
+    'length' => 1,
+  ]);
+  $schema->addField('employee', 'profile_pic', [
+    'type' => 'int',
+    'not null' => FALSE,
+    'length' => 11,
+  ]);
 }

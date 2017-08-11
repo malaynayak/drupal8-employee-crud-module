@@ -87,7 +87,7 @@ class EmployeeStorage {
    * in key => value pair.
    */
   static function update($id, $fields) {
-    db_update('employee')->fields($fields)
+    return db_update('employee')->fields($fields)
     ->condition('id', $id)
     ->execute();
   }
@@ -97,7 +97,21 @@ class EmployeeStorage {
    * @param integer $id is the employee ID
    */
   static function delete($id) {
-    db_delete('employee')->condition('id', $id)->execute();
+    $record = self::load($id);
+    if($record->profile_pic){
+      file_delete($record->profile_pic);
+    }
+    return db_delete('employee')->condition('id', $id)->execute();
+  }
+
+  /**
+   * To activate/ block the employee record
+   * @param integer $id is the employee ID
+   * @param integer 1 for activatng and 0 for blocking
+   * in key => value pair.
+   */
+  static function changeStatus($id, $status) {
+    return self::update($id, ['status'=>($status)?1:0]);
   }
 
 }

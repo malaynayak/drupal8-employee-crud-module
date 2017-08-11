@@ -10,9 +10,9 @@ use Drupal\Core\Url;
 use Drupal\employee\EmployeeStorage;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\employee\events\EmployeeWelcomeEvent;
+use Drupal\file\Entity\File;
 
 class EmployeeForm implements FormInterface {
-
 
   function getFormID() {
     return 'employee_add';
@@ -30,7 +30,7 @@ class EmployeeForm implements FormInterface {
         '#value' => $employee->id
       );
     }
-
+    $form['#attributes']['novalidate'] = '';
     $form['general'] = array(
       '#type' => 'details',
       "#title" => "General Details",
@@ -65,6 +65,12 @@ class EmployeeForm implements FormInterface {
       '#default_value' => ($employee)?$employee->department:''
     );
 
+    $form['general']['status'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Active?'),
+      '#default_value' => ($employee)?$employee->status:1
+    );
+
     $form['address_details'] = array(
       '#type' => 'details',
       "#title" => "Address Details",
@@ -90,7 +96,6 @@ class EmployeeForm implements FormInterface {
         'wrapper' => 'states',
       ],
     );
-
     $changed_country = $form_state->getValue('country');
     if($employee){
       if(!empty($changed_country)){
@@ -101,6 +106,7 @@ class EmployeeForm implements FormInterface {
     } else {
       $selected_country = $changed_country;
     }
+
     $states = $this->getStates($selected_country);
     $form['address_details']['state'] = array(
       '#type' => 'select',
@@ -109,13 +115,33 @@ class EmployeeForm implements FormInterface {
       '#options' => $states,
       '#required' => true,
       '#suffix' => '</div>',
-      '#default_value' => ($employee)?$employee->state:''
+      '#default_value' => ($employee)?$employee->state:'',
+      '#validated' => TRUE
+    );
+
+    $form['upload'] = array(
+      '#type' => 'details',
+      "#title" => "Profile Pic",
+      '#open' => TRUE
+    );
+
+    $form['upload']['profile_pic'] = array(
+      '#type' => 'managed_file',
+      '#upload_location' => 'public://employee_images/',
+      '#multiple' => false,
+      '#upload_validators' => array(
+        'file_validate_extensions' => array('png gif jpg jpeg jfif'),
+        'file_validate_size' => array(25600000),
+        //'file_validate_image_resolution' => array('800x600', '400x300'),
+      ),
+      '#title' => t('Upload a Profile Picture'),
+      '#default_value' => ($employee)?array($employee->profile_pic):'',
     );
 
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['submit'] = array(
       '#type' => 'submit',
-      '#value' => (isset($employee->id))?'Save':'Add'
+      '#value' => 'Save'
     );
 
     $form['actions']['cancel'] = array(
@@ -128,15 +154,17 @@ class EmployeeForm implements FormInterface {
   }
 
   function loadStates(array &$form, FormStateInterface $form_state) {
+    $form_state->setRebuild(TRUE);
     return $form['address_details']['state'];
   }
+
   function getCountries(){
-   return [
-     '' => 'Select Country',
-     'India' => 'India',
-     'Usa' => "Usa",
-     'Russia' => "Russia"
-   ];
+    return [
+      '' => 'Select Country',
+      'India' => 'India',
+      'Usa' => "Usa",
+      'Russia' => "Russia"
+    ];
   }
 
   function getStates($selected_country){
@@ -180,25 +208,49 @@ class EmployeeForm implements FormInterface {
   }
 
   function submitForm(array &$form, FormStateInterface $form_state) {
+    $id = $form_state->getValue('eid');
+    $file_usage = Drupal::service('file.usage');
+    $profile_pic_fid = NUll;
+    $image = $form_state->getValue('profile_pic');
+    if(!empty($image)){
+      $profile_pic_fid = $image[0];
+    }
     $fields = array(
       'name' => SafeMarkup::checkPlain($form_state->getValue('name')),
       'email' => SafeMarkup::checkPlain($form_state->getValue('email')),
       'department' => $form_state->getValue('department'),
       'country' => $form_state->getValue('country'),
       'state' => $form_state->getValue('state'),
-      'address' => SafeMarkup::checkPlain($form_state->getValue('address'))
+      'address' => SafeMarkup::checkPlain($form_state->getValue('address')),
+      'status' => $form_state->getValue('status'),
+      'profile_pic' => $profile_pic_fid,
     );
-
-    $id = $form_state->getValue('eid');
     if(!empty($id) && EmployeeStorage::exists($id)){
+      $employee = EmployeeStorage::load($id);
+      if($profile_pic_fid){
+        if($profile_pic_fid !== $employee->profile_pic){
+          file_delete($employee->profile_pic);
+          $file = File::load($profile_pic_fid);
+          $file->setPermanent();
+          $file->save();
+          $file_usage->add($file, 'employee', 'file', $id);
+        }
+      } else {
+        file_delete($employee->profile_pic);
+      }
       EmployeeStorage::update($id,$fields);
       $message = 'Employee updated sucessfully';
     } else {
       $new_employee_id = EmployeeStorage::add($fields);
-      $this->dispatchEmployeeWelcomeMailEvent($new_employee_id);
+      if($profile_pic_fid){
+        $file = File::load($profile_pic_fid);
+        $file->setPermanent();
+        $file->save();
+        $file_usage->add($file, 'employee', 'file', $new_employee_id);
+      }
+      //$this->dispatchEmployeeWelcomeMailEvent($new_employee_id);
       $message = 'Employee created sucessfully';
     }
-
     drupal_set_message(t($message));
     $form_state->setRedirect('employee.list');
     return;
@@ -207,7 +259,7 @@ class EmployeeForm implements FormInterface {
   private function dispatchEmployeeWelcomeMailEvent($employee_id){
     $dispatcher = \Drupal::service('event_dispatcher');
     $event = new EmployeeWelcomeEvent($employee_id);
-    $dispatcher->dispatch(, $event);
+    $dispatcher->dispatch('employee.welcome.mail', $event);
   }
 
 }

@@ -1,8 +1,8 @@
 employee.list:
   path: '/admin/content/employee'
-  _title: 'Employee Dashboard'
   defaults:
     _controller: '\Drupal\employee\controller\EmployeeController::listEmployees'
+    _title: 'Employee Dashboard'
   requirements:
     _permission: 'manage employees'
 
@@ -66,8 +66,16 @@ employee.sendmail:
 employee.delete:
   path: '/admin/content/employee/{id}/delete'
   defaults:
-    _form: 'Drupal\employee\forms\DeleteForm'
+    _form: 'Drupal\employee\forms\EmployeeDeleteForm'
     _title: 'Delete Employee'
+  requirements:
+    _permission: 'delete employee'
+
+employee.action:
+  path: '/admin/content/employee/action/{action}'
+  defaults:
+    _form: 'Drupal\employee\forms\EmployeeBulkActionForm'
+    _title_callback: 'Drupal\employee\forms\EmployeeBulkActionForm::getPageTitle'
   requirements:
     _permission: 'delete employee'
 

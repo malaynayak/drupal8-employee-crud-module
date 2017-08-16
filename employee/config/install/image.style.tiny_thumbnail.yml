@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies: {  }
+name: tiny_thumbnail
+label: 'Tiny Thumbnail (50x50)'
+effects:
+  6da4517f-2825-4e06-b1f6-c12bac338dd9:
+    uuid: 6da4517f-2825-4e06-b1f6-c12bac338dd9
+    id: image_resize
+    weight: 1
+    data:
+      width: 50
+      height: 50

@@ -1,64 +1,79 @@
 <?php
+
+/**
+ * @file
+ * Contains employee.install.
+ */
+
 use Drupal\Core\Database\Database;
 
+/**
+ * Implements hook_schema().
+ */
 function employee_schema() {
-  $schema['employee'] = array(
-    'fields' => array(
-      'id'=>array(
-        'type'=>'serial',
+  $schema['employee'] = [
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
         'not null' => TRUE,
-      ),
-      'name'=>array(
+      ],
+      'name' => [
         'type' => 'varchar',
         'length' => 40,
         'not null' => TRUE,
-      ),
-      'email'=>array(
+      ],
+      'email' => [
         'type' => 'varchar',
         'length' => 40,
         'not null' => TRUE,
-      ),
-      'department'=>array(
+      ],
+      'department' => [
         'type' => 'varchar',
         'length' => 40,
         'not null' => TRUE,
-      ),
-      'address'=>array(
+      ],
+      'address' => [
         'type' => 'text',
         'not null' => TRUE,
-      ),
-      'country'=>array(
+      ],
+      'country' => [
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
-      ),
-      'state'=>array(
+      ],
+      'state' => [
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
-      ),
-      'status'=>array(
+      ],
+      'status' => [
         'type' => 'int',
         'not null' => TRUE,
         'size' => 'tiny',
         'length' => 1,
         'default' => 1,
-      ),
-      'profile_pic'=>array(
+      ],
+      'profile_pic' => [
         'type' => 'int',
         'not null' => FALSE,
         'length' => 11,
-      )
-    ),
-    'primary key' => array('id'),
-  );
+      ],
+    ],
+    'primary key' => ['id'],
+  ];
   return $schema;
 }
 
+/**
+ * Implements hook_uninstall().
+ */
 function employee_uninstall() {
   db_query("drop table employee")->execute();
 }
 
+/**
+ * Implements hook_update_N().
+ */
 function employee_update_8001() {
   $schema = Database::getConnection()->schema();
   $schema->addField('employee', 'status', [

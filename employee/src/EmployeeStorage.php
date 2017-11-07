@@ -1,117 +1,138 @@
 <?php
 
 namespace Drupal\employee;
-use Drupal\Core\Database\Query;
 
+/**
+ * DAO class for employee table.
+ */
 class EmployeeStorage {
 
   /**
-   * To get multiple employee records
-   * @param integer $limit is the number of records to be fetched
-   * @param string $orderBy is the field on which the sorting to be performed
-   * @param string $order is the sorting order. Default is 'DESC'
+   * To get multiple employee records.
+   *
+   * @param int $limit
+   *   The number of records to be fetched.
+   * @param string $orderBy
+   *   The field on which the sorting to be performed.
+   * @param string $order
+   *   The sorting order. Default is 'DESC'.
    */
-  static function getAll($limit=NULL,$orderBy=NULL,$order='DESC') {
+  public static function getAll($limit = NULL, $orderBy = NULL, $order = 'DESC') {
     $query = db_select('employee', 'e')
       ->fields('e');
-    if($limit){
-      $query->range(0,$limit);
+    if ($limit) {
+      $query->range(0, $limit);
     }
-    if($orderBy){
-     $query->orderBy($orderBy, $order);
+    if ($orderBy) {
+      $query->orderBy($orderBy, $order);
     }
     $result = $query->execute()
       ->fetchAll();
-	  return $result;
+    return $result;
   }
 
   /**
-   * To check if an employee is valid
-   * @param integer $id is the employee ID
+   * To check if an employee is valid.
+   *
+   * @param int $id
+   *   The employee ID.
    */
-  static function exists($id) {
+  public static function exists($id) {
     $result = db_select('employee', 'e')
-      ->fields('e',array('id'))
-      ->condition('id', $id,'=')
+      ->fields('e', ['id'])
+      ->condition('id', $id, '=')
       ->execute()
       ->fetchField();
     return (bool) $result;
   }
 
   /**
-   * To load an employee record
-   * @param integer $id is the employee ID
+   * To load an employee record.
+   *
+   * @param int $id
+   *   The employee ID.
    */
-  static function load($id) {
+  public static function load($id) {
     $result = db_select('employee', 'e')
       ->fields('e')
-      ->condition('id', $id,'=')
+      ->condition('id', $id, '=')
       ->execute()
       ->fetchObject();
     return $result;
   }
 
   /**
-   * check for duplicate email
-   * @param String $email is the email id
-   * @param integer $id is the employee id
+   * Check for duplicate email.
+   *
+   * @param string $email
+   *   The email id.
+   * @param int $id
+   *   The employee id.
    */
-  static function checkUniqueEmail($email, $id = NULL) {
+  public static function checkUniqueEmail($email, $id = NULL) {
     $query = db_select('employee', 'e')
-      ->fields('e',['id']);
-    if($id){
-      $query->condition('id', $id,'!=');
+      ->fields('e', ['id']);
+    if ($id) {
+      $query->condition('id', $id, '!=');
     }
-    $query->condition('email', $email,'=');
+    $query->condition('email', $email, '=');
     $result = $query->execute();
-    if(empty($result->fetchObject())){
-      return true;
-    } else {
-      return false;
+    if (empty($result->fetchObject())) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
     }
   }
 
   /**
-   * To insert a new employee record
-   * @param array $fields is an array conating the employee data
-   * in key => value pair.
+   * To insert a new employee record.
+   *
+   * @param array $fields
+   *   An array conating the employee data in key value pair.
    */
-  static function add(array $fields) {
+  public static function add(array $fields) {
     return db_insert('employee')->fields($fields)->execute();
   }
 
   /**
-   * To update an existing employee record
-   * @param integer $id is the employee ID
-   * @param array $fields is an array conating the employee data
-   * in key => value pair.
+   * To update an existing employee record.
+   *
+   * @param int $id
+   *   The employee ID.
+   * @param array $fields
+   *   An array conating the employee data in key value pair.
    */
-  static function update($id, $fields) {
+  public static function update($id, array $fields) {
     return db_update('employee')->fields($fields)
-    ->condition('id', $id)
-    ->execute();
+      ->condition('id', $id)
+      ->execute();
   }
 
   /**
-   * To delete a specific employee record
-   * @param integer $id is the employee ID
+   * To delete a specific employee record.
+   *
+   * @param int $id
+   *   The employee ID.
    */
-  static function delete($id) {
+  public static function delete($id) {
     $record = self::load($id);
-    if($record->profile_pic){
+    if ($record->profile_pic) {
       file_delete($record->profile_pic);
     }
     return db_delete('employee')->condition('id', $id)->execute();
   }
 
   /**
-   * To activate/ block the employee record
-   * @param integer $id is the employee ID
-   * @param integer 1 for activatng and 0 for blocking
-   * in key => value pair.
+   * To activate/ block the employee record.
+   *
+   * @param int $id
+   *   The employee ID.
+   * @param int $status
+   *   Set 1 for activatng and 0 for blocking.
    */
-  static function changeStatus($id, $status) {
-    return self::update($id, ['status'=>($status)?1:0]);
+  public static function changeStatus($id, $status) {
+    return self::update($id, ['status' => ($status) ? 1 : 0]);
   }
 
 }

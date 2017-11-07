@@ -2,11 +2,10 @@
 
 namespace Drupal\employee\controller;
 
-use Drupal\employee\EmployeeStorage;
+use Drupal\employee\forms\EmployeeTableForm;
 use Drupal;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\OpenModalDialogCommand;
 use Drupal\Core\Form\FormBuilder;
@@ -16,23 +15,33 @@ use Drupal\Core\Database\Connection;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Drupal\file\Entity\File;
 
-class EmployeeController extends ControllerBase{
-  /*
-   * The Form builder
+/**
+ * Controller class.
+ */
+class EmployeeController extends ControllerBase {
+
+  /**
+   * The Form builder.
+   *
    * @var \Drupal\Core\Form\FormBuilder
    */
-  protected $form_builder;
 
-  /*
-   * Databse Connection
+  protected $formBuilder;
+
+  /**
+   * Databse Connection.
+   *
    * @var \Drupal\Core\Database\Connection
    */
+
   protected $db;
 
-  /*
-   * Request
+  /**
+   * Request.
+   *
    * @var Symfony\Component\HttpFoundation\RequestStack
    */
+
   protected $request;
 
   /**
@@ -40,10 +49,15 @@ class EmployeeController extends ControllerBase{
    *
    * @param \Drupal\Core\Form\FormBuilder $form_builder
    *   The Form builder.
+   * @param \Drupal\Core\Database\Connection $con
+   *   The database connection.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $request
+   *   Request stack.
    */
   public function __construct(FormBuilder $form_builder,
-    Connection $con, RequestStack $request){
-    $this->form_builder = $form_builder;
+    Connection $con,
+    RequestStack $request) {
+    $this->formBuilder = $form_builder;
     $this->db = $con;
     $this->request = $request;
   }
@@ -51,38 +65,39 @@ class EmployeeController extends ControllerBase{
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container){
-      return new static(
+  public static function create(ContainerInterface $container) {
+    return new static(
         $container->get('form_builder'),
         $container->get('database'),
         $container->get('request_stack')
       );
   }
 
- /**
-  * Lists all the employess
-  */
+  /**
+   * Lists all the employess.
+   */
   public function listEmployees() {
     $content = [];
     $content['search_form'] =
-      $this->form_builder->getForm('Drupal\employee\forms\EmployeeSearchForm');
+      $this->formBuilder->getForm('Drupal\employee\forms\EmployeeSearchForm');
     $search_key = $this->request->getCurrentRequest()->get('search');
     $employee_table_form_instance =
-      new Drupal\employee\forms\EmployeeTableForm($this->db, $search_key);
+      new EmployeeTableForm($this->db, $search_key);
     $content['table'] =
-      $this->form_builder->getForm($employee_table_form_instance);
+      $this->formBuilder->getForm($employee_table_form_instance);
     $content['pager'] = [
       '#type' => 'pager',
     ];
     $content['#attached'] = ['library' => ['core/drupal.dialog.ajax']];
     return $content;
   }
+
   /**
-   * To view an employee details
+   * To view an employee details.
    */
-  public function viewEmployee($employee, $js='nojs'){
+  public function viewEmployee($employee, $js = 'nojs') {
     global $base_url;
-    if($employee == 'invalid'){
+    if ($employee == 'invalid') {
       drupal_set_message(t('Invalid employee record'), 'error');
       return new RedirectResponse(Drupal::url('employee.list'));
     }
@@ -117,63 +132,63 @@ class EmployeeController extends ControllerBase{
         ],
     ];
     $profile_pic = File::load($employee->profile_pic);
-    if($profile_pic){
+    if ($profile_pic) {
       $profile_pic_url = file_create_url($profile_pic->getFileUri());
-    } else {
+    }
+    else {
       $module_handler = Drupal::service('module_handler');
       $path = $module_handler->getModule('employee')->getPath();
-      $profile_pic_url = $base_url.'/'.$path.'/assets/profile_placeholder.png';
+      $profile_pic_url = $base_url . '/' . $path . '/assets/profile_placeholder.png';
     }
     $content['image'] = [
       '#type' => 'html_tag',
       '#tag' => 'img',
-      '#attributes' => ['src'=>$profile_pic_url, 'height'=> 400]
+      '#attributes' => ['src' => $profile_pic_url, 'height' => 400],
     ];
     $content['details'] = [
       '#type' => 'table',
       '#rows' => $rows,
-      '#attributes' => ['class' => ['employee-detail']]
+      '#attributes' => ['class' => ['employee-detail']],
     ];
     $content['edit'] = [
       '#type' => 'link',
       '#title' => 'Edit',
       '#attributes' => ['class' => ['button button--primary']],
-      '#url' => Url::fromRoute('employee.edit',['employee' => $employee->id])
+      '#url' => Url::fromRoute('employee.edit', ['employee' => $employee->id]),
     ];
     $content['delete'] = [
       '#type' => 'link',
       '#title' => 'Delete',
       '#attributes' => ['class' => ['button']],
-      '#url' => Url::fromRoute('employee.delete',['id' => $employee->id]),
+      '#url' => Url::fromRoute('employee.delete', ['id' => $employee->id]),
     ];
     if ($js == 'ajax') {
-      $modal_title = t('Employee #@id',['@id' => $employee->id]);
+      $modal_title = t('Employee #@id', ['@id' => $employee->id]);
       $options = [
         'dialogClass' => 'popup-dialog-class',
         'width' => '70%',
-        'height' => '80%'
+        'height' => '80%',
       ];
       $response = new AjaxResponse();
       $response->addCommand(new OpenModalDialogCommand(
         $modal_title, $content, $options));
       return $response;
-    } else {
+    }
+    else {
       return $content;
     }
   }
+
   /**
    * Callback for opening the employee quick edit form in modal.
    */
   public function openQuickEditModalForm($employee = NULL) {
-    if($employee == 'invalid'){
+    if ($employee == 'invalid') {
       drupal_set_message(t('Invalid employee record'), 'error');
       return new RedirectResponse(Drupal::url('employee.list'));
     }
     $response = new AjaxResponse();
-    // Get the form using the form builder global
-    //$modal_form = \Drupal::formBuilder()
-    //->getForm('Drupal\employee\form\EmployeeQuickEditForm', $employee);
-    $modal_form = $this->form_builder
+    $modal_form = $this->formBuilder
       ->getForm('Drupal\employee\forms\EmployeeQuickEditForm', $employee);
     // Add an AJAX command to open a modal dialog with the form as the content.
     $response->addCommand(
@@ -182,24 +197,26 @@ class EmployeeController extends ControllerBase{
     ));
     return $response;
   }
+
   /**
    * Callback for opening the employee mail form in modal.
    */
   public function openEmailModalForm($employee = NULL) {
-    if($employee == 'invalid'){
+    if ($employee == 'invalid') {
       drupal_set_message(t('Invalid employee record'), 'error');
       return new RedirectResponse(Drupal::url('employee.list'));
     }
     $response = new AjaxResponse();
-    // Get the form using the form builder global
-    $modal_form = $this->form_builder
+    // Get the form using the form builder global.
+    $modal_form = $this->formBuilder
       ->getForm('Drupal\employee\forms\EmployeeMailForm', $employee);
     // Add an AJAX command to open a modal dialog with the form as the content.
     $response->addCommand(
       new OpenModalDialogCommand(
-        t('Send mail to: @email',['@email' => $employee->email]),
+        t('Send mail to: @email', ['@email' => $employee->email]),
         $modal_form, ['width' => '800']
     ));
     return $response;
   }
+
 }

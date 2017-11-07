@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains Drupal\employee\plugin\block\EmployeeBlock.
- */
 
 namespace Drupal\employee\Plugin\Block;
 
@@ -13,8 +9,9 @@ use Drupal\Core\Url;
 
 define("MAX_LIMIT", 7);
 define("DEFAULT_LIMIT", 5);
+
 /**
- * Provides a 'Employee' Block
+ * Provides a 'Employee' Block.
  *
  * @Block(
  *   id = "employees_block",
@@ -22,55 +19,56 @@ define("DEFAULT_LIMIT", 5);
  *   category = @Translation("Employee")
  * )
  */
-class EmployeeBlock extends BlockBase{
+class EmployeeBlock extends BlockBase {
+
   /**
    * {@inheritdoc}
    */
   public function build() {
-    $content = array();
+    $content = [];
 
     $config = $this->getConfiguration();
     $limit = isset($config['limit']) ? $config['limit'] : DEFAULT_LIMIT;
-    $content['table'] = array(
-      '#lazy_builder' => [static::class.'::lazyBuildEmployeeTable',[$limit]],
-      '#create_placeholder' => TRUE
-    );
+    $content['table'] = [
+      '#lazy_builder' => [static::class . '::lazyBuildEmployeeTable', [$limit]],
+      '#create_placeholder' => TRUE,
+    ];
 
-    $content['more'] = array(
+    $content['more'] = [
       '#type' => 'link',
       '#title' => t('More'),
       '#url' => new Url('employee.list'),
-      '#attributes' => array('class' => 'button')
-    );
+      '#attributes' => ['class' => 'button'],
+    ];
     return $content;
   }
 
   /**
-   * Lazy builder
+   * Lazy builder.
    */
-   public static function lazyBuildEmployeeTable($limit){
-      // Table header
-      $header = [
-        'name' => t('Employee Id'),
-        'message' => t('Employee Name'),
+  public static function lazyBuildEmployeeTable($limit) {
+    // Table header.
+    $header = [
+      'name' => t('Employee Id'),
+      'message' => t('Employee Name'),
+    ];
+    $rows = [];
+    foreach (EmployeeStorage::getAll($limit, 'id', 'DESC') as $id => $row) {
+      $rows[] = [
+        'data' => [$row->id, $row->name],
       ];
-      $rows = [];
-      foreach(EmployeeStorage::getAll($limit,'id', 'DESC') as $id=>$row) {
-        $rows[] = [
-          'data' => [$row->id, $row->name]
-        ];
-      }
-      return [
-        'table' => [
-          '#type' => 'table',
-          '#header' => $header,
-          '#rows' => $rows,
-          '#attributes' => [
-            'id' => 'bd-contact-block-table',
-          ]
-        ]
-      ];
-   }
+    }
+    return [
+      'table' => [
+        '#type' => 'table',
+        '#header' => $header,
+        '#rows' => $rows,
+        '#attributes' => [
+          'id' => 'bd-contact-block-table',
+        ],
+      ],
+    ];
+  }
 
   /**
    * {@inheritdoc}
@@ -82,13 +80,13 @@ class EmployeeBlock extends BlockBase{
     $config = $this->getConfiguration();
 
     // Add a form field to the existing block configuration form.
-    $form['limit'] = array(
+    $form['limit'] = [
       '#type' => 'textfield',
       '#title' => t('Limit'),
       '#description' => t('Number of employees to show'),
       '#default_value' => isset($config['limit']) ?
-        $config['limit'] : '',
-    );
+      $config['limit'] : '',
+    ];
 
     return $form;
   }
@@ -101,7 +99,7 @@ class EmployeeBlock extends BlockBase{
     $this->setConfigurationValue('limit', $form_state->getValue('limit'));
   }
 
-   /**
+  /**
    * {@inheritdoc}
    */
   public function blockValidate($form, FormStateInterface $form_state) {
@@ -111,9 +109,10 @@ class EmployeeBlock extends BlockBase{
       $form_state->setErrorByName('limit',
         t('Needs to be an integer'));
     }
-    if($limit > MAX_LIMIT){
+    if ($limit > MAX_LIMIT) {
       $form_state->setErrorByName('limit',
-        t('Must not exceed '.MAX_LIMIT));
+        t('Must not exceed @max_limit', ['max_limit' => MAX_LIMIT]));
     }
   }
+
 }

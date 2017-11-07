@@ -12,210 +12,239 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\employee\events\EmployeeWelcomeEvent;
 use Drupal\file\Entity\File;
 
+/**
+ * Employee Form.
+ */
 class EmployeeForm implements FormInterface {
 
-  function getFormID() {
+  /**
+   * {@inheritdoc}
+   */
+  public function getFormId() {
     return 'employee_add';
   }
 
-  function buildForm(array $form, FormStateInterface $form_state,
+  /**
+   * {@inheritdoc}
+   */
+  public function buildForm(array $form,
+  FormStateInterface $form_state,
     $employee = NULL) {
-    if($employee){
-      if($employee == 'invalid'){
+    if ($employee) {
+      if ($employee == 'invalid') {
         drupal_set_message(t('Invalid employee record'), 'error');
         return new RedirectResponse(Drupal::url('employee.list'));
       }
-      $form['eid'] = array(
+      $form['eid'] = [
         '#type' => 'hidden',
-        '#value' => $employee->id
-      );
+        '#value' => $employee->id,
+      ];
     }
     $form['#attributes']['novalidate'] = '';
-    $form['general'] = array(
+    $form['general'] = [
       '#type' => 'details',
       "#title" => "General Details",
-      '#open' => TRUE
-    );
+      '#open' => TRUE,
+    ];
 
-    $form['general']['name'] = array(
+    $form['general']['name'] = [
       '#type' => 'textfield',
       '#title' => t('Name'),
-      '#required' => true,
-      '#default_value' => ($employee)?$employee->name:''
-    );
+      '#required' => TRUE,
+      '#default_value' => ($employee) ? $employee->name : '',
+    ];
 
-    $form['general']['email'] = array(
+    $form['general']['email'] = [
       '#type' => 'email',
       '#title' => t('Email'),
-      '#required' => true,
-      '#default_value' => ($employee)?$employee->email:''
-    );
+      '#required' => TRUE,
+      '#default_value' => ($employee) ? $employee->email : '',
+    ];
 
-    $form['general']['department'] = array(
+    $form['general']['department'] = [
       '#type' => 'select',
       '#title' => t('Department'),
-      '#options' => array(
+      '#options' => [
         '' => 'Select Department',
         'Development' => 'Development',
         'HR' => 'HR',
         'Sales' => 'Sales',
-        'Marketing' => 'Marketing'
-      ),
-      '#required' => true,
-      '#default_value' => ($employee)?$employee->department:''
-    );
+        'Marketing' => 'Marketing',
+      ],
+      '#required' => TRUE,
+      '#default_value' => ($employee) ? $employee->department : '',
+    ];
 
-    $form['general']['status'] = array(
+    $form['general']['status'] = [
       '#type' => 'checkbox',
       '#title' => t('Active?'),
-      '#default_value' => ($employee)?$employee->status:1
-    );
+      '#default_value' => ($employee) ? $employee->status : 1,
+    ];
 
-    $form['address_details'] = array(
+    $form['address_details'] = [
       '#type' => 'details',
       "#title" => "Address Details",
-      '#open' => TRUE
-    );
+      '#open' => TRUE,
+    ];
 
-    $form['address_details']['address'] = array(
+    $form['address_details']['address'] = [
       '#type' => 'textarea',
       '#title' => t('Address'),
-      '#required' => true,
-      '#default_value' => ($employee)?$employee->address:''
-    );
+      '#required' => TRUE,
+      '#default_value' => ($employee) ? $employee->address : '',
+    ];
 
-    $form['address_details']['country'] = array(
+    $form['address_details']['country'] = [
       '#type' => 'select',
       '#title' => t('Country'),
       '#options' => $this->getCountries(),
-      '#required' => true,
-      '#default_value' => ($employee)?$employee->country:'',
+      '#required' => TRUE,
+      '#default_value' => ($employee) ? $employee->country : '',
       '#ajax' => [
-        'callback' => array($this, 'loadStates'),
+        'callback' => [$this, 'loadStates'],
         'event' => 'change',
         'wrapper' => 'states',
       ],
-    );
+    ];
     $changed_country = $form_state->getValue('country');
-    if($employee){
-      if(!empty($changed_country)){
+    if ($employee) {
+      if (!empty($changed_country)) {
         $selected_country = $changed_country;
-      } else {
+      }
+      else {
         $selected_country = $employee->country;
       }
-    } else {
+    }
+    else {
       $selected_country = $changed_country;
     }
 
     $states = $this->getStates($selected_country);
-    $form['address_details']['state'] = array(
+    $form['address_details']['state'] = [
       '#type' => 'select',
       '#prefix' => '<div id="states">',
       '#title' => t('State'),
       '#options' => $states,
-      '#required' => true,
+      '#required' => TRUE,
       '#suffix' => '</div>',
-      '#default_value' => ($employee)?$employee->state:'',
-      '#validated' => TRUE
-    );
+      '#default_value' => ($employee) ? $employee->state : '',
+      '#validated' => TRUE,
+    ];
 
-    $form['upload'] = array(
+    $form['upload'] = [
       '#type' => 'details',
       "#title" => "Profile Pic",
-      '#open' => TRUE
-    );
+      '#open' => TRUE,
+    ];
 
-    $form['upload']['profile_pic'] = array(
+    $form['upload']['profile_pic'] = [
       '#type' => 'managed_file',
       '#upload_location' => 'public://employee_images/',
-      '#multiple' => false,
-      '#upload_validators' => array(
-        'file_validate_extensions' => array('png gif jpg jpeg jfif'),
-        'file_validate_size' => array(25600000),
-        //'file_validate_image_resolution' => array('800x600', '400x300'),
-      ),
+      '#multiple' => FALSE,
+      '#upload_validators' => [
+        'file_validate_extensions' => ['png gif jpg jpeg jfif'],
+        'file_validate_size' => [25600000],
+        // 'file_validate_image_resolution' => array('800x600', '400x300'),.
+      ],
       '#title' => t('Upload a Profile Picture'),
-      '#default_value' => ($employee)?array($employee->profile_pic):'',
-    );
+      '#default_value' => ($employee) ? [$employee->profile_pic] : '',
+    ];
 
-    $form['actions'] = array('#type' => 'actions');
-    $form['actions']['submit'] = array(
+    $form['actions'] = ['#type' => 'actions'];
+    $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => 'Save'
-    );
+      '#value' => 'Save',
+    ];
 
-    $form['actions']['cancel'] = array(
+    $form['actions']['cancel'] = [
       '#type' => 'link',
       '#title' => 'Cancel',
-      '#attributes' => array('class' => ['button', 'button--primary']),
+      '#attributes' => ['class' => ['button', 'button--primary']],
       '#url' => Url::fromRoute('employee.list'),
-    );
+    ];
     return $form;
   }
 
-  function loadStates(array &$form, FormStateInterface $form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function loadStates(array &$form, FormStateInterface $form_state) {
     $form_state->setRebuild(TRUE);
     return $form['address_details']['state'];
   }
 
-  function getCountries(){
+  /**
+   * {@inheritdoc}
+   */
+  public function getCountries() {
     return [
       '' => 'Select Country',
       'India' => 'India',
       'Usa' => "Usa",
-      'Russia' => "Russia"
+      'Russia' => "Russia",
     ];
   }
 
-  function getStates($selected_country){
-   $states = [
-     'India' =>  [
-       '' => 'Select State',
-       'Odisha'=>'Odisha',
-       'Telangana'=>'Telangana',
-       'Gujarat'=>'Gujarat',
-       'Rajasthan'=>'Rajasthan',
-     ],
-     'Usa' =>  [
-       '' => 'Select State',
-       'Texas'=>'Texas',
-       'Californea'=>'Californea',
-     ],
-     'Russia' => [
-       '' => 'Select State',
-       'Moscow'=>'Moscow',
-       'Saints Petesberg'=>'Saints Petesberg',
-     ]
-   ];
-   return ($selected_country) ? $states[$selected_country] : [''=>'Select State'];
-  }
-  function validateForm(array &$form, FormStateInterface $form_state) {
-      $email = $form_state->getValue('email');
-      if (!empty($email) && (filter_var($email,
-        FILTER_VALIDATE_EMAIL) === false)) {
-        $form_state->setErrorByName('email', t('Invalid email'));
-      }
-      $id = $form_state->getValue('eid');
-      if(!empty($id)){
-        if (!EmployeeStorage::checkUniqueEmail($email,$id)) {
-          $form_state->setErrorByName('email', t('This email has already been taken!'));
-        }
-      } else {
-        if (!EmployeeStorage::checkUniqueEmail($email)) {
-          $form_state->setErrorByName('email', t('The email has already been taken!'));
-        }
-      }
+  /**
+   * {@inheritdoc}
+   */
+  public function getStates($selected_country) {
+    $states = [
+      'India' => [
+        '' => 'Select State',
+        'Odisha' => 'Odisha',
+        'Telangana' => 'Telangana',
+        'Gujarat' => 'Gujarat',
+        'Rajasthan' => 'Rajasthan',
+      ],
+      'Usa' => [
+        '' => 'Select State',
+        'Texas' => 'Texas',
+        'Californea' => 'Californea',
+      ],
+      'Russia' => [
+        '' => 'Select State',
+        'Moscow' => 'Moscow',
+        'Saints Petesberg' => 'Saints Petesberg',
+      ],
+    ];
+    return ($selected_country) ? $states[$selected_country] : ['' => 'Select State'];
   }
 
-  function submitForm(array &$form, FormStateInterface $form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    $email = $form_state->getValue('email');
+    if (!empty($email) && (filter_var($email,
+        FILTER_VALIDATE_EMAIL) === FALSE)) {
+      $form_state->setErrorByName('email', t('Invalid email'));
+    }
+    $id = $form_state->getValue('eid');
+    if (!empty($id)) {
+      if (!EmployeeStorage::checkUniqueEmail($email, $id)) {
+        $form_state->setErrorByName('email', t('This email has already been taken!'));
+      }
+    }
+    else {
+      if (!EmployeeStorage::checkUniqueEmail($email)) {
+        $form_state->setErrorByName('email', t('The email has already been taken!'));
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $id = $form_state->getValue('eid');
     $file_usage = Drupal::service('file.usage');
-    $profile_pic_fid = NUll;
+    $profile_pic_fid = NULL;
     $image = $form_state->getValue('profile_pic');
-    if(!empty($image)){
+    if (!empty($image)) {
       $profile_pic_fid = $image[0];
     }
-    $fields = array(
+    $fields = [
       'name' => SafeMarkup::checkPlain($form_state->getValue('name')),
       'email' => SafeMarkup::checkPlain($form_state->getValue('email')),
       'department' => $form_state->getValue('department'),
@@ -224,39 +253,43 @@ class EmployeeForm implements FormInterface {
       'address' => SafeMarkup::checkPlain($form_state->getValue('address')),
       'status' => $form_state->getValue('status'),
       'profile_pic' => $profile_pic_fid,
-    );
-    if(!empty($id) && EmployeeStorage::exists($id)){
+    ];
+    if (!empty($id) && EmployeeStorage::exists($id)) {
       $employee = EmployeeStorage::load($id);
-      if($profile_pic_fid){
-        if($profile_pic_fid !== $employee->profile_pic){
+      if ($profile_pic_fid) {
+        if ($profile_pic_fid !== $employee->profile_pic) {
           file_delete($employee->profile_pic);
           $file = File::load($profile_pic_fid);
           $file->setPermanent();
           $file->save();
           $file_usage->add($file, 'employee', 'file', $id);
         }
-      } else {
+      }
+      else {
         file_delete($employee->profile_pic);
       }
-      EmployeeStorage::update($id,$fields);
+      EmployeeStorage::update($id, $fields);
       $message = 'Employee updated sucessfully';
-    } else {
+    }
+    else {
       $new_employee_id = EmployeeStorage::add($fields);
-      if($profile_pic_fid){
+      if ($profile_pic_fid) {
         $file = File::load($profile_pic_fid);
         $file->setPermanent();
         $file->save();
         $file_usage->add($file, 'employee', 'file', $new_employee_id);
       }
-      //$this->dispatchEmployeeWelcomeMailEvent($new_employee_id);
+      // $this->dispatchEmployeeWelcomeMailEvent($new_employee_id);
       $message = 'Employee created sucessfully';
     }
-    drupal_set_message(t($message));
+    drupal_set_message($message);
     $form_state->setRedirect('employee.list');
-    return;
   }
 
-  private function dispatchEmployeeWelcomeMailEvent($employee_id){
+  /**
+   * {@inheritdoc}
+   */
+  private function dispatchEmployeeWelcomeMailEvent($employee_id) {
     $dispatcher = \Drupal::service('event_dispatcher');
     $event = new EmployeeWelcomeEvent($employee_id);
     $dispatcher->dispatch('employee.welcome.mail', $event);

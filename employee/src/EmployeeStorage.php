@@ -18,7 +18,7 @@ class EmployeeStorage {
    *   The sorting order. Default is 'DESC'.
    */
   public static function getAll($limit = NULL, $orderBy = NULL, $order = 'DESC') {
-    $query = db_select('employee', 'e')
+    $query = \Drupal::database()->select('employee', 'e')
       ->fields('e');
     if ($limit) {
       $query->range(0, $limit);
@@ -38,7 +38,7 @@ class EmployeeStorage {
    *   The employee ID.
    */
   public static function exists($id) {
-    $result = db_select('employee', 'e')
+    $result = \Drupal::database()->select('employee', 'e')
       ->fields('e', ['id'])
       ->condition('id', $id, '=')
       ->execute()
@@ -53,7 +53,7 @@ class EmployeeStorage {
    *   The employee ID.
    */
   public static function load($id) {
-    $result = db_select('employee', 'e')
+    $result = \Drupal::database()->select('employee', 'e')
       ->fields('e')
       ->condition('id', $id, '=')
       ->execute()
@@ -70,7 +70,7 @@ class EmployeeStorage {
    *   The employee id.
    */
   public static function checkUniqueEmail($email, $id = NULL) {
-    $query = db_select('employee', 'e')
+    $query = \Drupal::database()->select('employee', 'e')
       ->fields('e', ['id']);
     if ($id) {
       $query->condition('id', $id, '!=');
@@ -92,7 +92,7 @@ class EmployeeStorage {
    *   An array conating the employee data in key value pair.
    */
   public static function add(array $fields) {
-    return db_insert('employee')->fields($fields)->execute();
+    return \Drupal::database()->insert('employee')->fields($fields)->execute();
   }
 
   /**
@@ -104,7 +104,7 @@ class EmployeeStorage {
    *   An array conating the employee data in key value pair.
    */
   public static function update($id, array $fields) {
-    return db_update('employee')->fields($fields)
+    return \Drupal::database()->update('employee')->fields($fields)
       ->condition('id', $id)
       ->execute();
   }
@@ -120,7 +120,7 @@ class EmployeeStorage {
     if ($record->profile_pic) {
       file_delete($record->profile_pic);
     }
-    return db_delete('employee')->condition('id', $id)->execute();
+    return \Drupal::database()->delete('employee')->condition('id', $id)->execute();
   }
 
   /**
